@@ -1,0 +1,28 @@
+a : int	= -2 + 8;
+b : real = 2.1;
+c : string = "hi";
+a : int = 7;
+d := b + 7.3;
+d = 78.2;
+d = "salam";
+a++;
+
+x : int = 10;
+y : int = 15;
+
+
+myFunction(arg1 : real, arg2 : string): int{
+
+}
+
+myVoidFunc(arg3 : real, arg4 : int): adt{
+	if(a > y){
+		for(i := 0; i < x; i++){
+			sys -> print("Hello World");
+		}
+	}
+	else{
+		sys -> print("bye");
+	}
+}
+myFunction(a,b,c);

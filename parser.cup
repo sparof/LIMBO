@@ -1,0 +1,361 @@
+/*
+   Limbo programming language; 
+   Limbo is case-sensitive ^_^
+*/
+
+package cup.example;
+
+import java_cup.runtime.*;
+import cup.example.Lexer;
+import java.io.IOException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.*;
+import java.lang.*;
+
+parser code {:
+  protected Lexer lexer;
+:}
+
+action code {:
+	Map<String, String> stringTable = new HashMap<>();
+	Map<String, Integer> intTable = new HashMap<>();
+	Map<String, Integer> explicitRadixIntTable = new HashMap<>();
+	Map<String, Double> realTable = new HashMap<>();
+	int dataType = 0;
+	Map<String, List<Integer>> functionTable = new HashMap<>();
+	ArrayList<Integer> arguments;
+	String name = "";
+	String firstArgName = "";
+
+	public void initialize(String id, Object value){
+		if(stringTable.containsKey(id) || intTable.containsKey(id) || explicitRadixIntTable.containsKey(id) || realTable.containsKey(id)){
+			System.err.println("ERROR: Variable \""+id+"\" has been already initialized!!");
+		}
+		else{
+			if(dataType == 1){
+				stringTable.put(id,(String)value);
+				System.out.println("variable \""+id+"\" initialized and assigned to \""+value+"\" as \"string\" type ^_^");
+			}
+			if(dataType == 2){
+				intTable.put(id,(Integer)value);
+				System.out.println("Variable \""+id+"\" initialized and assigned to \""+value+"\" as \"int\" type ^_^");
+			}
+			if(dataType == 3){
+				explicitRadixIntTable.put(id,(Integer)value);
+				System.out.println("Variable \""+id+"\" initialized and assigned to \""+value+"\" as \"int\" type ^_^");
+			}
+			if(dataType == 4){
+				realTable.put(id,(Double)value);
+				System.out.println("Variable \""+id+"\" initialized and assigned to \""+value+"\" as \"real\" type ^_^");
+			}
+		}
+	}
+	
+	public void assign(String id, Object value){
+		if(!(stringTable.containsKey(id)) && !(intTable.containsKey(id)) && !(explicitRadixIntTable.containsKey(id)) && !(realTable.containsKey(id))){
+			System.err.println("ERROR: Variable \""+id+"\" has not been initialized yet!!");
+			return;
+		}
+		else{
+			if(stringTable.containsKey(id)){
+				if(dataType == 1){
+					stringTable.put(id,(String)value);
+					System.out.println("Variable \""+id+"\" updated to \""+value+"\"");
+				}
+				else{
+					System.err.println("ERROR: Type mismatched!!");
+				}
+			}
+			if(intTable.containsKey(id)){
+				if(dataType == 2){
+					intTable.put(id,(Integer)value);
+					System.out.println("Variable \""+id+"\" updated to \""+value+"\"");
+				}
+				else{
+					System.err.println("ERROR: Type mismatched!!");
+				}
+			}
+			if(explicitRadixIntTable.containsKey(id)){
+				if(dataType == 3){
+					explicitRadixIntTable.put(id,(Integer)value);
+					System.out.println("Variable \""+id+"\" updated to \""+value+"\"");
+				}
+				else{
+					System.err.println("ERROR: Type mismatched!!");
+				}
+			}
+			if(realTable.containsKey(id)){
+				if(dataType == 4){
+					realTable.put(id,(Double)value);
+					System.out.println("Variable \""+id+"\" updated to \""+value+"\"");
+				}
+				else{
+					System.err.println("ERROR: Type mismatched!!");
+				}
+			}
+		}
+	}
+
+	public Object getValueOfIdentifier(String id){
+		if(!(stringTable.containsKey(id)) && !(intTable.containsKey(id)) && !(explicitRadixIntTable.containsKey(id)) && !(realTable.containsKey(id))){
+			System.err.println("ERROR: Variable \""+id+"\" has not been initialized yet!!");
+			return 0;
+		}
+		else{
+			if(stringTable.containsKey(id)){
+				dataType = 1;
+				return stringTable.get(id);
+			}
+			if(intTable.containsKey(id)){
+				dataType = 2;
+				return intTable.get(id);
+			}
+			if(explicitRadixIntTable.containsKey(id)){
+				dataType = 3;
+				return explicitRadixIntTable.get(id);
+			}
+			if(realTable.containsKey(id)){
+				dataType = 4;
+				return realTable.get(id);
+			}
+		}
+		return 0;
+	}
+
+	public void createFunction(String name, ArrayList<Integer> argument){
+		if(functionTable.containsKey(name)){
+			System.err.println("ERROR: Function \""+name+"\" has been already existed!!");
+		}
+		else{
+			ArrayList<Integer> l = new ArrayList<Integer>();
+			l = argument;
+			functionTable.put(name, l);
+			System.out.println("Function \""+name+"\" created ^_^"); 
+		}
+	}
+
+	public void checkFunction(String name, ArrayList<Integer> arguments){
+		if(!functionTable.containsKey(name)){
+			System.err.println("ERROR: Function \""+name+"\" has not been initialized yet!!");
+		}
+		else{
+			if(!(functionTable.get(name).equals(arguments))){
+				System.err.println(" => ERROR: Wrong arguments U_U");
+			}
+			else{
+				System.out.println("Succesfully o_o");
+			}
+			
+		}
+	}
+:};
+
+/* define how to connect to the scanner! */
+init with {:
+  ComplexSymbolFactory f = new ComplexSymbolFactory();
+  symbolFactory = f;
+  File file = new File("input.txt");
+  FileInputStream fis = null;
+  try {
+    fis = new FileInputStream(file);
+  } catch (IOException e) {
+    e.printStackTrace();
+  } 
+  lexer = new Lexer(f,fis);
+:};
+
+
+scan with {: return lexer.next_token(); :};
+
+/* Terminals (tokens returned by the scanner). */
+terminal				PLUS, MINUS, MUL, DIV, REM, XOR, BWAND, BWOR, LT, GT, EQ, NOT, PPLUS, MMINUS, POW,
+						EQUALTO, LTEQ, GTEQ, NEQ, SHL, SHR, AND, OR, CONCAT, PLUSEQ, MINUSEQ, MULEQ, DIVEQ, REMEQ,
+						ANDEQ, OREQ, XOREQ, DECLARE, SHLEQ, SHREQ, GO; // operands
+terminal				IF, ELSE, FOR, WHILE, BREAK, ADT, INT, REAL, STRING, NIL, RETURN, SYS, PRINT; //keywords
+terminal				SEMI, COMMA, COLON, DOT, LPRAN, RPRAN, BEGIN, END, OBRACK, CBRACK; //delimeters
+terminal	Integer		INTEGER_LITERAL;
+terminal	Integer		EXPLICIT_RADIX_INTEGER_LITERAL;
+terminal	Double		REAL_LITERAL;
+terminal	String		STRING_LITERAL;
+terminal	String		IDENTIFIER;
+
+
+/* Non terminals */
+non terminal				body;
+non terminal	String		strings;
+non terminal	Number		numbers;
+non terminal	Integer		int_numbers;
+non terminal	Object		operand;
+non terminal	Integer		int_operand;
+non terminal	String		type;
+non terminal	Number		math_calculation;
+non terminal				initialize;
+non terminal				num_initialize;
+non terminal				str_initialize;
+non terminal				assignment;
+non terminal				num_assignment;
+non terminal				str_assignment;
+non terminal				if_statement;
+non terminal				else_statement;
+non terminal				conditions;
+non terminal				compare;
+non terminal				for_statement;
+non terminal				loop_initialize;
+non terminal				function_section;
+non terminal 				call_function;
+non terminal				function_type;
+non terminal				function_initialize;
+non terminal				arguments;
+non terminal				call_or_create;
+non terminal				print_statement;
+
+/* Precedences */
+precedence left PLUS, MINUS, MUL, DIV;
+precedence right POW;
+
+/* The grammar rules */
+body 		::= initialize body
+			| 	assignment body
+			|  	if_statement body		
+			|   for_statement body
+			|	function_section body
+			|	print_statement
+			|
+			;
+			
+strings		::=	STRING_LITERAL:s	{: dataType = 1; RESULT = s; :}
+			;
+			
+numbers		::=	INTEGER_LITERAL:i					{: dataType = 2; RESULT = i; :}
+			|	EXPLICIT_RADIX_INTEGER_LITERAL:e	{: dataType = 3; RESULT = e; :}
+			|	REAL_LITERAL:r						{: dataType = 4; RESULT = r; :}
+			;
+			
+int_numbers	::= INTEGER_LITERAL:i					{: dataType = 2; RESULT = i; :}
+			|	EXPLICIT_RADIX_INTEGER_LITERAL:e	{: dataType = 3; RESULT = e; :}
+			;
+											
+operand		::= numbers:n			{: RESULT = n; :}
+			|   IDENTIFIER:i		{: RESULT = getValueOfIdentifier(i); :}
+			;
+
+int_operand	::= int_numbers:i		{: RESULT = i; :}
+			|   IDENTIFIER:i		{: Object out = getValueOfIdentifier(i); if(dataType == 2 || dataType == 3){RESULT = (Integer)out;} else{System.err.println("ERROR: Just Integer values are permited");} :}
+			;
+								        
+math_calculation::=	operand:e								{: if(dataType == 2 || dataType == 3){RESULT = (Integer)e;} if(dataType == 4){RESULT = (Double)e;} :}
+				|	math_calculation:e1 PLUS operand:e2		{: if(dataType == 2 || dataType == 3){RESULT = ((Integer)e1 + (Integer)e2);} if(dataType == 4){RESULT = ((Double)e1 + (Double)e2);}	:}
+          		|	math_calculation:e1 MINUS operand:e2	{: if(dataType == 2 || dataType == 3){RESULT = ((Integer)e1 - (Integer)e2);} if(dataType == 4){RESULT = ((Double)e1 - (Double)e2);}	:}
+		        |	math_calculation:e1 MUL operand:e2		{: if(dataType == 2 || dataType == 3){RESULT = ((Integer)e1 * (Integer)e2);} if(dataType == 4){RESULT = ((Double)e1 * (Double)e2);}	:}
+    	        |	math_calculation:e1 DIV operand:e2		{: if(dataType == 2 || dataType == 3){RESULT = ((Integer)e1 / (Integer)e2);} if(dataType == 4){RESULT = ((Double)e1 / (Double)e2);}	:}
+        	    |	math_calculation:e1 REM operand:e2		{: if(dataType == 2 || dataType == 3){RESULT = ((Integer)e1 % (Integer)e2);} if(dataType == 4){RESULT = ((Double)e1 % (Double)e2);}	:}
+    	        |	operand:e1 POW math_calculation:e2		{: RESULT = (Math.pow((Integer)e1, (Integer)e2));	:}
+       		/*    |	MINUS operand:e                 		{: if(dataType == 2 || dataType == 3){RESULT = -(Integer)e; if(dataType == 4){RESULT = -(Double)e;} :} */
+           			%prec MINUS
+				|	LPRAN math_calculation:e RPRAN	      	{: RESULT = e; :}
+					%prec LPRAN 
+           		;
+
+             
+type		::= INT:i		{: dataType = 2; RESULT = (String)i; :}
+			|	REAL:r		{: dataType = 4; RESULT = (String)r; :}
+			;
+			            
+initialize	::=	num_initialize SEMI
+			|	str_initialize	SEMI
+			;
+
+num_initialize	::= IDENTIFIER:i COLON type EQ math_calculation:m		{: initialize(i,m);	:}
+				|	IDENTIFIER:i DECLARE math_calculation:m				{: initialize(i,m);	:}
+				|	IDENTIFIER:i COLON type								{: initialize(i,null); :}
+				;
+			
+str_initialize	::= IDENTIFIER:i COLON STRING EQ strings:s			{: initialize(i,s);	:}
+				|	IDENTIFIER:i DECLARE strings:s					{: initialize(i,s);	:}
+				|	IDENTIFIER:i COLON STRING						{: initialize(i,null); :}
+				;
+				
+assignment	::= num_assignment SEMI
+			|	str_assignment SEMI
+			;
+			
+num_assignment	::= IDENTIFIER:i EQ math_calculation:m		{: assign(i,m); :}
+				|	IDENTIFIER:i PPLUS						{: Object out = getValueOfIdentifier(i); if(dataType == 2 || dataType == 3){assign(i,(Object)((Integer)out + 1));} else{System.err.println("ERROR: Just Integer values are permited");} :}
+	           	|	IDENTIFIER:i MMINUS						{: Object out = getValueOfIdentifier(i); if(dataType == 2 || dataType == 3){assign(i,(Object)((Integer)out - 1));} else{System.err.println("ERROR: Just Integer values are permited");} :}
+				|	IDENTIFIER:i PLUSEQ operand:e2			{: Object out = getValueOfIdentifier(i); if(dataType == 2 || dataType == 3){assign(i,(Object)((Integer)out + (Integer)e2));} if(dataType == 4){assign(i,(Object)((Double)out + (Double)e2));}	:}
+				|	IDENTIFIER:i MINUSEQ operand:e2			{: Object out = getValueOfIdentifier(i); if(dataType == 2 || dataType == 3){assign(i,(Object)((Integer)out - (Integer)e2));} if(dataType == 4){assign(i,(Object)((Double)out - (Double)e2));}	:}
+				|	IDENTIFIER:i MULEQ operand:e2			{: Object out = getValueOfIdentifier(i); if(dataType == 2 || dataType == 3){assign(i,(Object)((Integer)out * (Integer)e2));} if(dataType == 4){assign(i,(Object)((Double)out * (Double)e2));}	:}
+				|	IDENTIFIER:i DIVEQ operand:e2			{: Object out = getValueOfIdentifier(i); if(dataType == 2 || dataType == 3){assign(i,(Object)((Integer)out / (Integer)e2));} if(dataType == 4){assign(i,(Object)((Double)out / (Double)e2));}	:}
+				|	IDENTIFIER:i REMEQ operand:e2			{: Object out = getValueOfIdentifier(i); if(dataType == 2 || dataType == 3){assign(i,(Object)((Integer)out % (Integer)e2));} else{System.err.println("ERROR: Just Integer values are permited");} :}
+				;
+				
+str_assignment	::= IDENTIFIER:i EQ strings:s		{: assign(i,s); :}
+				;
+				
+if_statement	::= IF LPRAN {: System.out.println("There is a If statement"); :} conditions RPRAN BEGIN body END else_statement
+				;
+				
+else_statement	::=	ELSE BEGIN {: System.out.println("There is a Else statement"); :} body END
+				|
+				;
+				
+conditions	::= compare
+			|	NOT conditions
+			|	compare AND conditions
+			|	compare OR conditions
+			|	compare XOR conditions
+			;
+
+compare		::= int_operand:i
+			|	int_operand:i1 EQUALTO int_operand:i2
+			|	int_operand:i1 NEQ int_operand:i2
+			|	int_operand:i1 GTEQ int_operand:i2
+			|	int_operand:i1 LTEQ int_operand:i2
+			| 	int_operand:i1 GT int_operand:i2
+			| 	int_operand:i1 LT int_operand:i2
+			;
+			
+for_statement	::= FOR LPRAN {: System.out.println("There is a For statement"); :} loop_initialize SEMI conditions SEMI num_assignment RPRAN BEGIN body END
+				;
+
+loop_initialize	::= num_initialize loop_initialize
+				|	str_initialize loop_initialize
+				|	num_assignment loop_initialize
+				|	str_assignment loop_initialize
+				|	COMMA loop_initialize
+				|
+				;
+				
+function_section	::=	IDENTIFIER:i LPRAN {: name =  i; arguments = new ArrayList<Integer>(); :} arguments 
+					;
+					
+arguments	::=	IDENTIFIER:i	{: if(!(stringTable.containsKey(i)) && !(intTable.containsKey(i)) && !(explicitRadixIntTable.containsKey(i)) && !(realTable.containsKey(i))){firstArgName = i;} else{ getValueOfIdentifier(i); }:} call_or_create
+		/*	|	operand			{: arguments.add(dataType); :} call_function*/
+			;
+					
+call_or_create	::=	COMMA			{: arguments.add(dataType); :} call_function
+				|	RPRAN			{: arguments.add(dataType); :} call_function
+				|	COLON type		{: arguments.add(dataType); initialize(firstArgName,null);:} function_initialize
+				|	COLON STRING	{: dataType = 1; arguments.add(dataType); initialize(firstArgName,null); :} function_initialize
+				;
+									
+function_type	::= type
+				| 	ADT
+				;
+				
+function_initialize	::= IDENTIFIER:i COLON type 	{: arguments.add(dataType); initialize(i,null); :} function_initialize		
+					|	IDENTIFIER:i COLON STRING 	{: dataType = 1; arguments.add(dataType); initialize(i,null); :} function_initialize			
+					|	COMMA function_initialize														
+					|	RPRAN COLON function_type BEGIN body END	{: createFunction(name, arguments); :}
+					;
+				
+call_function	::= operand:e1 {: arguments.add(dataType); :} call_function	
+				|	strings:e2 {: arguments.add(dataType); :} call_function	
+				|	COMMA call_function
+				|	RPRAN SEMI					{: System.out.print("Function \""+name+"\" called "); checkFunction(name, arguments); :}
+				|	SEMI						{: System.out.print("Function \""+name+"\" called "); checkFunction(name, arguments); :}
+				;	
+											
+print_statement	::= SYS GO PRINT LPRAN strings:s RPRAN SEMI	{: System.out.println("print: \""+s+"\""); :}
+				;
